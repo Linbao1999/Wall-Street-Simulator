@@ -1,0 +1,97 @@
+<%- include("header") -%>
+
+  <!-- Page Content -->
+<div class="container-fluid bg-light">
+    <div class="row" id="column-name" style="background-color: rgb(191, 191, 191)">
+        <div class="col"><p class="font-weight-bold fs-4">Stock Symbol</p></div>
+        <div class="col"><p class="font-weight-bold fs-4">Price</p></div>
+        <div class="col"><p class="font-weight-bold fs-4">Change</p></div>
+        <div class="col"><p class="font-weight-bold fs-4">52w Range</p></div>
+    </div>
+    <hr id="top-hr-bar">
+    <% watchListStocks.forEach(function(item){ %>
+    <div class="row">
+      <div class="col">
+        <div class="row">
+          <a class="fw-bold fs-3" id="symbol" target="_blank" href=<%="https://www.etoro.com/markets/"+item.symbol+"/stats"%>><%=item.symbol%></a>
+        </div>
+
+        <div class="row"><p class="fw-lighter"><%=item.longName%></p></div>
+      </div>
+
+      <div class="col">
+        <div class="row">
+            <button type="button" class="btn btn-outline-dark"><p class="fw-normal fs-4"><%=item.currentPrice%></p></button>
+            <button type="button" class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#trade<%=item.symbol%>" >Trade</button>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="row">
+            <%if(item.absChange<=0) { %>
+                <p class="fw-normal  fs-4" style="color: rgb(245, 66, 66)">
+                <%=item.absChange%>
+                <span class="fw-light fs-6">| <%=item.rateChange%></span>
+                </p>
+                <%} else {%>
+                <p class="fw-normal fs-4 price" style="color: rgb(0, 153, 51)">
+                <%=item.absChange%> 
+                <span class="fw-light fs-6">| <%=item.rateChange%></span>
+                </p>
+                <%}%>
+        </div>
+      </div>
+
+      <div class="col">
+          <div class="row">
+            <div class="btn-group-vertical justify-content-center" style="padding-left: 80px;padding-right: 80px;">
+                <button type="button" class="btn btn-outline-success" ><%=item.rangeHigh%></button>
+                <button type="button" class="btn btn-outline-danger" ><%=item.rangeLow%></button>
+            </div>
+          </div>
+       </div>
+       <hr />
+
+    </div>
+
+
+      <!-- Modal Trade -->
+     <div class="modal fade" id="trade<%=item.symbol%>" tabindex="-1" aria-labelledby="Trade" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Trade</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="/trade" method="POST">
+                    <input type="hidden" name="symbol" value="<%=item.symbol%>">
+                    <label for="fname">Set Amount:</label><br>
+                    <input type="text" id="amount" name="amount" placeholder="100"><br>
+                    <select class="form-select" name="tradeType">
+                        <option selected>Buy/Sell</option>
+                        <option value="buy">Buy</option>
+                        <option value="sell">Sell</option>
+                      </select>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Trade</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <%}) %>
+
+</div>
+
+
+
+<!-- modal testing section -->
+<!-- Button trigger modal
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+    Launch demo modal
+  </button> -->
+  
+
+  <%- include("footer") -%>
+</body>

@@ -1,0 +1,63 @@
+<%- include("header") -%>
+
+  <!-- Page Content -->
+  <div class="container-fluid bg-light">
+    <div class="row" id="column-name" style="background-color: rgb(191, 191, 191)">
+      <div class="col"><p class="font-weight-bold fs-4">Stock Symbol</p></div>
+      <div class="col"><p class="font-weight-bold fs-4">Quantity</p></div>
+      <div class="col"><p class="font-weight-bold fs-4">Current Price</p></div>
+      <div class="col"><p class="font-weight-bold fs-4">Profit</p></div>
+      <div class="col"><p class="font-weight-bold fs-4">Worth</p></div>
+    </div>
+    <hr id="top-hr-bar">
+    <% for(let i=0;i<investments.length;i++) {%>
+    <% let item = investments[i];%>
+    <div class="row">
+      <div class="col">
+        <div class="row">
+          <a class="fw-bold fs-3" id="symbol" target="_blank" href=<%="https://www.etoro.com/markets/"+item.symbol+"/stats"%>><%=item.symbol%></a>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="row">
+            <p><%=item.amount%></p>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="row">
+            <p><%=currentPrice[i]%></p>
+        </div>
+      </div>
+
+
+      <div class="col">
+        <div class="row">
+            <%if(profit[i]<0) { %>
+                <p class="fw-normal  fs-4" style="color: rgb(245, 66, 66)">
+                <%=profit[i]%>
+                <span class="fw-light fs-6">| <%=profitRate[i].toFixed(2)%>%</span>
+                </p>
+                <%} else {%>
+                <p class="fw-normal fs-4 price" style="color: rgb(0, 153, 51)">
+                <%=profit[i]%> 
+                <span class="fw-light fs-6">| <%=profitRate[i].toFixed(2)%>%</span>
+                </p>
+                <%}%>
+        </div>
+      </div>
+
+      <div class="col">
+          <div class="row">
+            <p><%=item.cost + profit[i]%></p>
+          </div>
+       </div>
+
+    </div>
+
+<%}%>
+  </div>
+  
+<%- include("footer") -%>
+</body>
