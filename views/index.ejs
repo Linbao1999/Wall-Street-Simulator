@@ -1,17 +1,22 @@
 <%- include("header") -%>
+<script src="https://cdn.rawgit.com/fnando/sparkline/master/dist/sparkline.js
+"></script>
 
   <!-- Page Content -->
-<div class="container-fluid bg-light">
-    <div class="row" id="column-name" style="background-color: rgb(191, 191, 191)">
-        <div class="col"><p class="font-weight-bold fs-4">Stock Symbol</p></div>
-        <div class="col"><p class="font-weight-bold fs-4">Price</p></div>
-        <div class="col"><p class="font-weight-bold fs-4">Change</p></div>
-        <div class="col"><p class="font-weight-bold fs-4">52w Range</p></div>
+<div class="container-fluid grid" style="background-color: #eeeeee; padding-bottom: 15px;">
+    <div class="row" id="column-name" style="background-color: #424242; margin-bottom: 15px;">
+        <div class="col-xl-3 col-l-2" ><p class="font-weight-bold fs-5" style="color: white;">Stock Symbol</p></div>
+        <div class="col-xl-4 col-lg-4" ><p class="font-weight-bold fs-5" style="color: white;">Price</p></div>
+        <div class="col-xl-3 col-lg-3" ><p class="font-weight-bold fs-5" style="color: white;">Change</p></div>
+        <div class="col-xl-2 col-lg-3" ><p class="font-weight-bold fs-5" style="color: white;">52w Range</p></div>
     </div>
-    <hr id="top-hr-bar">
-    <% watchListStocks.forEach(function(item){ %>
+
+    <%let item=undefined%>
+    <%let sparkShifted=undefined%>
+    <%for(let i=0;i<watchListStocks.length;i++){%>
+        <%item=watchListStocks[i]%>
     <div class="row">
-      <div class="col">
+      <div class="col-xl-3 col-l-2">
         <div class="row">
           <a class="fw-bold fs-3" id="symbol" target="_blank" href=<%="https://www.etoro.com/markets/"+item.symbol+"/stats"%>><%=item.symbol%></a>
         </div>
@@ -19,14 +24,29 @@
         <div class="row"><p class="fw-lighter"><%=item.longName%></p></div>
       </div>
 
-      <div class="col">
-        <div class="row">
-            <button type="button" class="btn btn-outline-dark"><p class="fw-normal fs-4"><%=item.currentPrice%></p></button>
-            <button type="button" class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#trade<%=item.symbol%>" >Trade</button>
+      <div class="col-xl-4 col-lg-4">
+        <div style="position: relative;">
+          <%if(item.absChange<0){%>
+            <svg class="<%=item.symbol%> sparkline--red sparkline--red--fill"  width="300" height="70" stroke-width="3"></svg>
+          <%} else {%>
+            <svg class="<%=item.symbol%> sparkline--green sparkline--green--fill"  width="300" height="70" stroke-width="3"></svg>
+          <%} %>  
+                <button type="button" 
+                        class="btn btn-outline-dark"
+                        data-bs-toggle="modal" data-bs-target="#trade<%=item.symbol%>" 
+                        style="width:100px; margin-left: 10%;"
+                        >
+                        <p class="fw-normal fs-5"><%=item.currentPrice%></p>
+                </button>
         </div>
-      </div>
 
-      <div class="col">
+      </div>
+      <%let data=item.sparkData%>
+      <script>
+        sparkline.sparkline(document.querySelector(".<%=item.symbol%>"),<%-JSON.stringify(item.sparkData)%>);
+      </script>
+
+      <div class="col-xl-3 col-lg-3">
         <div class="row">
             <%if(item.absChange<=0) { %>
                 <p class="fw-normal  fs-4" style="color: rgb(245, 66, 66)">
@@ -42,20 +62,19 @@
         </div>
       </div>
 
-      <div class="col">
+      <div class="col-xl-2 col-lg-3">
           <div class="row">
-            <div class="btn-group-vertical justify-content-center" style="padding-left: 80px;padding-right: 80px;">
-                <button type="button" class="btn btn-outline-success" ><%=item.rangeHigh%></button>
-                <button type="button" class="btn btn-outline-danger" ><%=item.rangeLow%></button>
+            <div class="btn-group-vertical justify-content-center">
+                <button type="button" class="btn btn-outline-success" style="width:50%;align-self:center" ><%=item.rangeHigh%></button>
+                <button type="button" class="btn btn-outline-danger" style="width:50%;align-self:center"><%=item.rangeLow%></button>
             </div>
           </div>
        </div>
-       <hr />
+
 
     </div>
 
 
-      <!-- Modal Trade -->
      <div class="modal fade" id="trade<%=item.symbol%>" tabindex="-1" aria-labelledby="Trade" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -80,18 +99,18 @@
             </div>
         </div>
     </div>
-    <%}) %>
+    <%if(i!=watchListStocks.length-1){%>
+        <hr class="twenty-pdding">
+      <%}%>
+    <%} %>
 
 </div>
 
+  <script type="text/javascript" src="/javascripts/spark.js"></script>
 
-
-<!-- modal testing section -->
-<!-- Button trigger modal
-<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
-    Launch demo modal
-  </button> -->
-  
 
   <%- include("footer") -%>
+
+
+
 </body>

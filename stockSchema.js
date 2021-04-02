@@ -6,7 +6,9 @@ const stockSchema = new mongoose.Schema({
     rateChange: String,
     currentPrice: Number,
     rangeLow: Number,
-    rangeHigh: Number
+    rangeHigh: Number,
+    sparkData: {type: [Number], default:[]},
+    sparkShifted: {type: [Number], default:[]}
 });
 
 module.exports = stockSchema;

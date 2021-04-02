@@ -1,0 +1,54 @@
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+<script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+<link rel="stylesheet" href="css/login.css" />
+<!------ Include the above in your HEAD tag ---------->
+
+<div class="wrapper fadeInDown">
+  <div id="formContent">
+    <!-- Tabs Titles -->
+    <!-- Icon -->
+    <div class="fadeIn first">
+      <h1 class="navbar-brand" style="margin-top: 20px; color: black;">Wall Street Simulator</h1>
+    </div>
+
+    <!-- Login Form -->
+    <form action="/login" method="POST">
+      <input type="text" id="username" class="fadeIn second" name="username" placeholder="username">
+      <input type="text" id="password" class="fadeIn third" name="password" placeholder="password">
+      <input type="submit" class="fadeIn fourth" value="Log In">
+    </form>
+    <!-- Remind Passowrd -->
+    <div id="formFooter">
+      <a class="underlineHover" href="/">Go to the Site</a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+    $('#myModal').modal('show');
+    });
+
+  </script>
+
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><%=errMessage%></h5>
+                    <button type="button" class="close" onclick="$('#myModal').modal('hide');" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <button type="button" class="btn btn-secondary" onclick="$('#myModal').modal('hide');">Continue</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+      </div>
+  

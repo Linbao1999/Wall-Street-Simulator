@@ -26,15 +26,21 @@ div{
   vertical-align: middle;
 }
 
-.row{
-  vertical-align: middle;
-  align-self: center;
+
+.footer {
+  position:fixed;
+  bottom:0;
 }
 
-.col{
-  vertical-align: middle;
-  align-content: center;
-  align-self: center;
+.fixed-bottom {
+  position: fixed;
+  margin: auto;
+  height: 80px;
+  width: 100%;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1030;
 }
 
 #symbol{
@@ -50,7 +56,6 @@ div{
   padding-top:0px;
   margin-top: 0px;
   margin-bottom: 10px;
-  background-color: rgb(191, 191, 191);
 }
 
 hr{
@@ -63,3 +68,11 @@ hr{
   color: black;
 }
 
+#twenty-pdding{
+  padding-top:15px;
+  padding-bottom:15px;
+}
+
+#white-text{
+  color: #ffffff;
+}

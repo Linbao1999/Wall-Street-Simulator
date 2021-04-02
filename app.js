@@ -10,10 +10,24 @@ const passport = require("passport");
 const passportLocalMongoose = require("passport-local-mongoose");
 
 const initializeDB = require(__dirname + "/initDB.js");
+const updateSpark = require(__dirname + "/updateSpark.js");
 const stockSchema = require(__dirname + "/stockSchema.js");
 
 const app = express();
-
+let symbolList = [
+  "AAPL",
+  "TSLA",
+  "AMZN",
+  "MSFT",
+  "NIO",
+  "NVDA",
+  "MRNA",
+  "NKLA",
+  "AMD",
+  "NFLX",
+  "FB",
+  "GOOG",
+];
 app.use(express.static("public"));
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
@@ -57,6 +71,11 @@ const userSchema = new mongoose.Schema({
   transactionHistory: { type: [transactionSchema], default: [] },
   balance: { type: Number, default: 100000 },
   investments: { type: [investmentSchema], default: [] },
+  watchlist: { type: [String], default: symbolList },
+});
+const sparkSchema = new mongoose.Schema({
+  symbol: String,
+  data: { type: [Number], default: [] },
 });
 
 userSchema.plugin(passportLocalMongoose);
@@ -64,7 +83,7 @@ userSchema.plugin(passportLocalMongoose);
 const Transaction = mongoose.model("Transaction", transactionSchema);
 const User = mongoose.model("User", userSchema);
 const Investment = mongoose.model("Investment", investmentSchema);
-
+const Spark = mongoose.model("Spark", sparkSchema);
 passport.use(User.createStrategy());
 
 passport.serializeUser(function (user, done) {
@@ -78,22 +97,34 @@ passport.deserializeUser(function (id, done) {
 });
 
 app.get("/", function (req, res) {
-  Stock.find({}, function (err, foundStocks) {
-    if (foundStocks.length === 0) {
-      initializeDB(function (stocks) {
-        Stock.insertMany(stocks, function (err) {
-          if (err) {
-            console.log(err);
-          } else {
-            console.log("Successfully Inserted.");
-            res.redirect("/");
-          }
-        });
+  if (req.isAuthenticated()) {
+    let userInfo = { username: req.user.username };
+    User.findOne({ username: req.user.username }, function (err, foundUser) {
+      Stock.find(
+        { symbol: { $in: foundUser.watchlist } },
+        function (err, foundStocks) {
+          res.render("index", {
+            watchListStocks: foundStocks,
+            userInfo: userInfo,
+            errMessage: "None",
+          });
+        }
+      );
+    });
+  } else {
+    Stock.find({}, function (err, foundStocks) {
+      res.render("index", {
+        watchListStocks: foundStocks,
+        userInfo: undefined,
+        errMessage: "None",
       });
-    } else {
-      res.render("index", { watchListStocks: foundStocks });
-    }
-  });
+    });
+  }
+});
+
+app.get("/logout", function (req, res) {
+  req.logout();
+  res.redirect("/");
 });
 
 app.get("/login", function (req, res) {
@@ -108,12 +139,11 @@ app.post("/register", function (req, res) {
   User.register(
     { username: req.body.username },
     req.body.password,
-    function (err, user) {
+    function (err) {
       if (err) {
-        console.log(err);
-        res.redirect("/register");
+        res.render("err-register",{errMessage:"Username is already been used."})
       } else {
-        passport.authenticate("local")(req, res, function () {
+        passport.authenticate("local")(req, res, function (err) {
           res.redirect("/");
         });
       }
@@ -129,8 +159,8 @@ app.post("/login", function (req, res) {
 
   req.login(user, function (err) {
     if (err) {
-      console.log(err);
-    } else {
+      res.render("err-login",{errMessage:"Username and password combination is incorrect."});
+    } else  {
       passport.authenticate("local")(req, res, function () {
         res.redirect("/");
       });
@@ -138,13 +168,16 @@ app.post("/login", function (req, res) {
   });
 });
 
+
 function getProfit(investments, callback) {
   let profit = [];
   let profitRate = [];
   let currentPrice = [];
-  let investmentInfo = {profit: profit,
-                        profitRate: profitRate,
-                        currentPrice: currentPrice}
+  let investmentInfo = {
+    profit: profit,
+    profitRate: profitRate,
+    currentPrice: currentPrice,
+  };
   getProfitHelper(investments, 0, investmentInfo, callback);
 }
 
@@ -154,20 +187,44 @@ function getProfitHelper(investments, index, investmentInfo, callback) {
     return;
   }
   let item = investments[index];
-  console.log(item.symbol)
   Stock.findOne({ symbol: item.symbol }, function (err, foundStock) {
     if (err) {
       console.log(err);
     } else {
       //item: investments[index]
-      investmentInfo.profit.push(foundStock.currentPrice*item.amount - item.cost);
-      investmentInfo.profitRate.push(((foundStock.currentPrice*item.amount -item.cost) / item.cost)*100);
+      investmentInfo.profit.push(
+        foundStock.currentPrice * item.amount - item.cost
+      );
+      investmentInfo.profitRate.push(
+        ((foundStock.currentPrice * item.amount - item.cost) / item.cost) * 100
+      );
       investmentInfo.currentPrice.push(foundStock.currentPrice);
       getProfitHelper(investments, index + 1, investmentInfo, callback);
       return;
     }
   });
 }
+
+app.get("/stock-market", function (req, res) {
+  if (req.isAuthenticated()) {
+    let userInfo = { username: req.user.username };
+    Stock.find({}, function (err, foundStocks) {
+      res.render("index", {
+        watchListStocks: foundStocks,
+        userInfo: userInfo,
+        errMessage: "None",
+      });
+    });
+  } else {
+    Stock.find({}, function (err, foundStocks) {
+      res.render("index", {
+        watchListStocks: foundStocks,
+        userInfo: undefined,
+        errMessage: "None",
+      });
+    });
+  }
+});
 
 app.get("/myinvestment", function (req, res) {
   if (req.isAuthenticated()) {
@@ -179,10 +236,70 @@ app.get("/myinvestment", function (req, res) {
           investments: foundUser.investments,
           profit: investmentInfo.profit,
           profitRate: investmentInfo.profitRate,
-          currentPrice:investmentInfo.currentPrice
+          currentPrice: investmentInfo.currentPrice,
+          userInfo: { username: username },
+          errMessage: "None",
         });
       });
     });
+  } else {
+    res.render("err-login",{errMessage:"Please Login First."});
+  }
+});
+
+app.post("/edit", function (req, res) {
+  if (req.isAuthenticated()) {
+    let newWatchlist = [];
+    User.findOne({ username: req.user.username }, function (err, foundUser) {
+      let errMessage = "None";
+      let username = req.user.username;
+      if (err) {
+        errMessage = err;
+      } else {
+        let targetSymbol = req.body.targetSymbol;
+        if (req.body.editType === "remove") {
+          let flag = 0;
+          for (let i = 0; i < foundUser.watchlist.length; i++) {
+            if (!(targetSymbol === foundUser.watchlist[i])) {
+              newWatchlist.push(foundUser.watchlist[i]);
+            } else {
+              flag += 1;
+            }
+          }
+          if (flag === 0) {
+            errMessage = targetSymbol + " does not exist in your watchlist.";
+          } else {
+            foundUser.watchlist = newWatchlist;
+          }
+        } else {
+          let flag = 0;
+          for (let i = 0; i < foundUser.watchlist.length; i++) {
+            if (targetSymbol === foundUser.watchlist[i]) {
+              flag += 1;
+            }
+          }
+          if (flag === 0) {
+            foundUser.watchlist.push(targetSymbol);
+          } else {
+            errMessage = targetSymbol + " is already in your watchlist.";
+          }
+        }
+
+        if (errMessage === "None") {
+          foundUser.save(err, () => {
+            res.redirect("/");
+          });
+        } else {
+          res.render("index", {
+            watchListStocks: [],
+            userInfo: { username: username },
+            errMessage: errMessage,
+          });
+        }
+      }
+    });
+  } else {
+    res.render("err-login",{errMessage:"Please Login First."});
   }
 });
 
@@ -193,6 +310,7 @@ app.post("/trade", function (req, res) {
     let amount = req.body.amount;
     let date = new Date();
 
+    // get stock
     Stock.findOne({ symbol: targetSymbol }, function (err, foundStock) {
       const tradeType = req.body.tradeType;
       let transaction = new Transaction({
@@ -203,71 +321,154 @@ app.post("/trade", function (req, res) {
         symbol: targetSymbol,
         amount: amount,
       });
+
+      //get transaction
       transaction.save(function (err, result) {
         User.findOne({ username: username }, function (err, foundUser) {
           foundUser.transactionHistory.push(result);
           Investment.exists(
             { username: username, symbol: targetSymbol },
             function (err, exist) {
-              if (err) {
-                console.log(err);
-              }
+
               let changeAmountBy = 0;
               if (result.type === "buy") {
                 changeAmountBy = result.amount;
               } else {
                 changeAmountBy = -result.amount;
               }
-              if (exist === true) {
+
+              let errMessage = "You have successfully ";
+              if (result.type === "buy") {
+                errMessage +=
+                  "bought " +
+                  result.amount +
+                  " shares of " +
+                  targetSymbol +
+                  ".";
+              } else {
+                errMessage +=
+                  "sold " + result.amount + " shares of " + targetSymbol + ".";
+              }
+
+              // if the investment exist
+              if(result.amount<=0){
+                res.render("index", {
+                  watchListStocks: [],
+                  userInfo: { username: username },
+                  errMessage:
+                    "Invalid Amount. Please Try Again.",
+                });
+              } else if (exist === true) {
                 Investment.findOne(
                   { username: username, symbol: targetSymbol },
                   function (err, foundInvestment) {
-                    foundInvestment.amount += changeAmountBy;
-                    Stock.findOne(
-                      { symbol: targetSymbol },
-                      function (err, foundStock) {
-                        foundInvestment.cost += foundStock.currentPrice * changeAmountBy;
-                        foundInvestment.amount += changeAmountBy;
-                        foundUser.balance -= foundStock.currentPrice * changeAmountBy ;
-
-                        foundUser.investments.forEach(function(item){
-                            if(item.symbol===targetSymbol){
-                                item.cost += foundStock.currentPrice * changeAmountBy;
-                                item.amount += changeAmountBy;
+                    if (
+                      changeAmountBy < 0 &&
+                      foundInvestment.amount < -changeAmountBy
+                    ) {
+                      res.render("index", {
+                        watchListStocks: [],
+                        userInfo: { username: username },
+                        errMessage:
+                          "You are trying to sell shares more than you owned.",
+                      });
+                      // sell all the stock owned
+                    } else {
+                      Stock.findOne(
+                        { symbol: targetSymbol },
+                        function (err, foundStock) {
+                          foundInvestment.cost += foundStock.currentPrice * changeAmountBy;
+                          foundInvestment.amount += changeAmountBy;
+                          foundUser.balance -= foundStock.currentPrice * changeAmountBy;
+                          //not enough balance
+                          if (foundUser.balance < 0) {
+                            res.render("index", {
+                              watchListStocks: [],
+                              userInfo: { username: username },
+                              errMessage: "Your balance is not enough.",
+                            });
+                          } else if (foundInvestment.amount === 0) {
+                            //remove from Investment
+                            foundInvestment.remove(() => {
+                              //remove from User.Investment
+                              updateUserInvest(
+                                foundUser,
+                                changeAmountBy,
+                                foundStock,
+                                () => {
+                                  res.render("index", {
+                                    watchListStocks: [],
+                                    userInfo: { username: username },
+                                    errMessage: errMessage,
+                                  });
+                                }
+                              );
+                            });
+                          } else {
+                            for (let i = 0;i < foundUser.investments.length;i++) {
+                              if (foundUser.investments[i].symbol === targetSymbol) {
+                                foundUser.investments[i] = foundInvestment;
+                                break;
+                              }
                             }
-                        })
-                        foundInvestment.save(() => {
-                            foundUser.save(()=>{
-                                res.redirect("/");
+                            foundInvestment.save(()=>{
+                              foundUser.save(()=>{
+                                res.render("index", {
+                                  watchListStocks: [],
+                                  userInfo: { username: username },
+                                  errMessage: errMessage,
+                                });
+                              })
                             })
-                        });
-                      }
-                    );
-                  }
-                );
+
+                          }
+                        }
+                      );
+                    }
+                      
+                  });
+                // if the investment doesn't exist
               } else {
-                Investment.create(
-                  {
-                    username: result.username,
-                    symbol: result.symbol,
-                    amount: result.amount,
-                  },
-                  function (err, newInvestment) {
-                    Stock.findOne(
-                      { symbol: targetSymbol },
-                      function (err, foundStock) {
-                        newInvestment.cost +=
-                          foundStock.currentPrice * newInvestment.amount;
-                        newInvestment.save(() => {
-                          foundUser.investments.push(newInvestment);
-                          foundUser.save(() => {
-                            res.redirect("/");
+                if(changeAmountBy<0){
+                  res.render("index", {
+                    watchListStocks: [],
+                    userInfo: { username: username },
+                    errMessage:
+                      "You are trying to sell shares more than you owned.",
+                  });
+                } else{
+                  Investment.create(
+                    {
+                      username: result.username,
+                      symbol: result.symbol,
+                      amount: result.amount,
+                    },
+                    function (err, newInvestment) {
+                      Stock.findOne(
+                        { symbol: targetSymbol },
+                        function (err, foundStock) {
+                          newInvestment.cost +=
+                            foundStock.currentPrice * newInvestment.amount;
+                          newInvestment.save(() => {
+                            foundUser.investments.push(newInvestment);
+                            foundUser.balance -= newInvestment.cost;
+                            foundUser.save(() => {
+                              res.render("index", {
+                                watchListStocks: [],
+                                userInfo: undefined,
+                                errMessage:
+                                  "You have successfully bought " +
+                                  changeAmountBy +
+                                  " shares of " +
+                                  targetSymbol,
+                              });
+                            });
                           });
-                        });
-                      }
-                    );
-                  }
-                );
+                        }
+                      );
+                    }
+                  );
+                }
               }
             }
           );
@@ -275,9 +476,23 @@ app.post("/trade", function (req, res) {
       });
     });
   } else {
-    res.redirect("/login");
+    res.render("err-login",{errMessage:"Please Login First."});
   }
 });
+
 app.listen(3000, function () {
   console.log("server has started");
 });
+
+function updateUserInvest(foundUser, amount, foundStock, callback) {
+  for (let i = 0; i < foundUser.investments.length; i++) {
+    if (foundUser.investments[i].symbol === foundStock.symbol) {
+      foundUser.investments.splice(i, 1);
+      break;
+    }
+  }
+  foundUser.balance -= amount * foundStock.currentPrice;
+  foundUser.save(() => {
+    callback();
+  });
+}

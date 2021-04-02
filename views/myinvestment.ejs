@@ -1,15 +1,14 @@
 <%- include("header") -%>
 
   <!-- Page Content -->
-  <div class="container-fluid bg-light">
-    <div class="row" id="column-name" style="background-color: rgb(191, 191, 191)">
-      <div class="col"><p class="font-weight-bold fs-4">Stock Symbol</p></div>
-      <div class="col"><p class="font-weight-bold fs-4">Quantity</p></div>
-      <div class="col"><p class="font-weight-bold fs-4">Current Price</p></div>
-      <div class="col"><p class="font-weight-bold fs-4">Profit</p></div>
-      <div class="col"><p class="font-weight-bold fs-4">Worth</p></div>
+  <div class="container-fluid" style="background-color: #eeeeee;padding-bottom: 15px;">
+    <div class="row" id="column-name" style="background-color: #424242; margin-bottom: 15px;">
+      <div class="col"><p class="font-weight-bold fs-5" style="color: white;">Stock Symbol</p></div>
+      <div class="col"><p class="font-weight-bold fs-5" style="color: white;">Quantity</p></div>
+      <div class="col"><p class="font-weight-bold fs-5" style="color: white;">Current Price</p></div>
+      <div class="col"><p class="font-weight-bold fs-5" style="color: white;">Profit</p></div>
+      <div class="col"><p class="font-weight-bold fs-5" style="color: white;">Worth</p></div>
     </div>
-    <hr id="top-hr-bar">
     <% for(let i=0;i<investments.length;i++) {%>
     <% let item = investments[i];%>
     <div class="row">
@@ -36,12 +35,12 @@
         <div class="row">
             <%if(profit[i]<0) { %>
                 <p class="fw-normal  fs-4" style="color: rgb(245, 66, 66)">
-                <%=profit[i]%>
+                <%=profit[i].toFixed(2)%>
                 <span class="fw-light fs-6">| <%=profitRate[i].toFixed(2)%>%</span>
                 </p>
                 <%} else {%>
                 <p class="fw-normal fs-4 price" style="color: rgb(0, 153, 51)">
-                <%=profit[i]%> 
+                <%=profit[i].toFixed(2)%> 
                 <span class="fw-light fs-6">| <%=profitRate[i].toFixed(2)%>%</span>
                 </p>
                 <%}%>
@@ -50,12 +49,15 @@
 
       <div class="col">
           <div class="row">
-            <p><%=item.cost + profit[i]%></p>
+            <p><%=(item.cost + profit[i]).toFixed(2)%></p>
           </div>
        </div>
 
     </div>
-
+    
+    <%if(i!=investments.length-1){%>
+      <hr class="twenty-pdding">
+    <%}%>  
 <%}%>
   </div>
   

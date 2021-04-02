@@ -26,3 +26,29 @@
 
   </div>
 </div>
+
+<script>
+  $(document).ready(function() {
+  $('#myModal').modal('show');
+  });
+
+</script>
+
+  <!-- Modal -->
+  <div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <h5 class="modal-title"><%=errMessage%></h5>
+                  <button type="button" class="close" onclick="$('#myModal').modal('hide');" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                  </button>
+              </div>
+              <div class="modal-body">
+                  <form>
+                      <button type="button" class="btn btn-secondary" onclick="$('#myModal').modal('hide');">Continue</button>
+                  </form>
+              </div>
+          </div>
+      </div>
+    </div>
