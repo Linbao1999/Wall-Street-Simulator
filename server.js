@@ -494,8 +494,10 @@ app.post("/trade", function (req, res) {
                           foundUser.balance -=
                             foundStock.currentPrice * changeAmountBy;
                           //not enough balance
-                          console.log(foundUser.balance);
+                          console.log("balance before check: "+foundUser.balance);
+                          console.log("balance<0? ");
                           if (foundUser.balance < 0) {
+                            console.log("true")
                             res.render("index", {
                               watchListStocks: [],
                               userInfo: {
