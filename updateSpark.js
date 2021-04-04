@@ -28,7 +28,7 @@ module.exports = function (callback) {
     "QCOM",
     "SBUX",
     "VOD"
-  ];;
+  ];
 
   for(let i=0;i<stocks.length;i++){
       symbols += stocks[i];
