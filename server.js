@@ -100,7 +100,6 @@ passport.deserializeUser(function (id, done) {
   });
 });
 
-
 //initialize DB
 app.get("/init", function (req, res) {
   Stock.remove({}, () => {
@@ -210,6 +209,7 @@ app.get("/", function (req, res) {
       res.render("index", {
         watchListStocks: foundStocks,
         userInfo: undefined,
+        investmentInfo: undefined,
         errMessage: "None",
       });
     });
@@ -307,18 +307,25 @@ function getInvestInfo(investments, callback) {
 
 app.get("/stock-market", function (req, res) {
   if (req.isAuthenticated()) {
-    let userInfo = { username: req.user.username };
     Stock.find({}, function (err, foundStocks) {
-      res.render("index", {
-        watchListStocks: foundStocks,
-        userInfo: userInfo,
-        errMessage: "None",
+      let username = req.user.username;
+      User.findOne({ username: username }, function (err, foundUser) {
+        getInvestInfo(foundUser.investments, function (investmentInfo) {
+          res.render("index", {
+            username: username,
+            investments: foundUser.investments,
+            investmentInfo: investmentInfo,
+            userInfo: { username: username, balance: foundUser.balance },
+            errMessage: "None",
+          });
+        });
       });
     });
   } else {
     Stock.find({}, function (err, foundStocks) {
       res.render("index", {
         watchListStocks: foundStocks,
+        investmentInfo: undefined,
         userInfo: undefined,
         errMessage: "None",
       });
@@ -393,6 +400,7 @@ app.post("/edit", function (req, res) {
           res.render("index", {
             watchListStocks: [],
             userInfo: { username: username },
+            investmentInfo: undefined,
             errMessage: errMessage,
           });
         }
@@ -453,7 +461,8 @@ app.post("/trade", function (req, res) {
               if (result.amount <= 0) {
                 res.render("index", {
                   watchListStocks: [],
-                  userInfo: { username: username,balance:foundUser.balance},
+                  userInfo: { username: username, balance: foundUser.balance },
+                  investmentInfo: undefined,
                   errMessage: "Invalid Amount. Please Try Again.",
                 });
               } else if (exist === true) {
@@ -466,7 +475,11 @@ app.post("/trade", function (req, res) {
                     ) {
                       res.render("index", {
                         watchListStocks: [],
-                        userInfo: { username: username,balance:foundUser.balance},
+                        investmentInfo: undefined,
+                        userInfo: {
+                          username: username,
+                          balance: foundUser.balance,
+                        },
                         errMessage:
                           "You are trying to sell shares more than you owned.",
                       });
@@ -485,7 +498,11 @@ app.post("/trade", function (req, res) {
                           if (foundUser.balance < 0) {
                             res.render("index", {
                               watchListStocks: [],
-                              userInfo: { username: username,balance:foundUser.balance},
+                              userInfo: {
+                                username: username,
+                                balance: foundUser.balance,
+                              },
+                              investmentInfo: undefined,
                               errMessage: "Your balance is not enough.",
                             });
                           } else if (foundInvestment.amount === 0) {
@@ -499,7 +516,11 @@ app.post("/trade", function (req, res) {
                                 () => {
                                   res.render("index", {
                                     watchListStocks: [],
-                                    userInfo: { username: username,balance:foundUser.balance },
+                                    userInfo: {
+                                      username: username,
+                                      balance: foundUser.balance,
+                                    },
+                                    investmentInfo: undefined,
                                     errMessage: errMessage,
                                   });
                                 }
@@ -522,7 +543,11 @@ app.post("/trade", function (req, res) {
                               foundUser.save(() => {
                                 res.render("index", {
                                   watchListStocks: [],
-                                  userInfo: { username: username ,balance:foundUser.balance},
+                                  userInfo: {
+                                    username: username,
+                                    balance: foundUser.balance,
+                                  },
+                                  investmentInfo: undefined,
                                   errMessage: errMessage,
                                 });
                               });
@@ -539,6 +564,7 @@ app.post("/trade", function (req, res) {
                   res.render("index", {
                     watchListStocks: [],
                     userInfo: { username: username },
+                    investmentInfo: undefined,
                     errMessage:
                       "You are trying to sell shares more than you owned.",
                   });
@@ -562,6 +588,7 @@ app.post("/trade", function (req, res) {
                               res.render("index", {
                                 watchListStocks: [],
                                 userInfo: undefined,
+                                investmentInfo: undefined,
                                 errMessage:
                                   "You have successfully bought " +
                                   changeAmountBy +
@@ -586,7 +613,6 @@ app.post("/trade", function (req, res) {
   }
 });
 
-
 function updateUserInvest(foundUser, amount, foundStock, callback) {
   for (let i = 0; i < foundUser.investments.length; i++) {
     if (foundUser.investments[i].symbol === foundStock.symbol) {
@@ -600,7 +626,7 @@ function updateUserInvest(foundUser, amount, foundStock, callback) {
   });
 }
 
-const port = process.env.PORT ||3000;
+const port = process.env.PORT || 3000;
 app.listen(port, function () {
   console.log("server has started");
 });
