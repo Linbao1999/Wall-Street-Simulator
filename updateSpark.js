@@ -23,7 +23,7 @@ module.exports = function (callback) {
   });
 
   req.headers({
-    "x-rapidapi-key": process.env.x-rapidapi-key,
+    "x-rapidapi-key": process.env.api_key,
     "x-rapidapi-host": "apidojo-yahoo-finance-v1.p.rapidapi.com",
     useQueryString: true,
   });

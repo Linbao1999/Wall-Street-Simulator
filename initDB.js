@@ -1,6 +1,5 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const date = require(__dirname + "/date.js");
 const getSimpleStat = require(__dirname + "/simpleStat.js");
 
 module.exports = function(callback){

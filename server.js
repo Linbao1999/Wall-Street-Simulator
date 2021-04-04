@@ -1,7 +1,6 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
-const date = require(__dirname + "/date.js");
 const simpleStat = require(__dirname + "/simpleStat.js");
 const path = require("path");
 const { find, forEach } = require("async");
@@ -37,7 +36,7 @@ app.use(express.json());
 
 app.use(
   session({
-    secret: "Ruilin Zhou.",
+    secret: process.env.secret,
     resave: false,
     saveUninitialized: false,
   })
@@ -101,14 +100,6 @@ passport.deserializeUser(function (id, done) {
   });
 });
 
-// update database
-// cron.schedule("*/30 10-15 * * 1-5",()=>{
-//   //update Stock in data base
-// })
-
-// cron.schedule("40 9 * * 1-5",()=>{
-//   //update Spark in database
-// })
 
 //initialize DB
 app.get("/init", function (req, res) {

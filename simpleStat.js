@@ -1,6 +1,5 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const date = require(__dirname + "/date.js");
 const stockSchema = require(__dirname +"/stockSchema.js");
 const app = express();
 
@@ -23,7 +22,7 @@ module.exports = function (symbol,callback) {
   });
 
   req.headers({
-    "x-rapidapi-key": process.env.x-rapidapi-key,
+    "x-rapidapi-key": process.env.api_key,
     "x-rapidapi-host": "apidojo-yahoo-finance-v1.p.rapidapi.com",
     useQueryString: true,
   });
