@@ -46,8 +46,12 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
+const MongoClient = require("mongodb").MongoClient;
+const uri =
+  "mongodb+srv://ruilinzhousyd:haohaoxuex1@cluster0.wnrww.mongodb.net/stockmarket?retryWrites=true&w=majority";
+
 mongoose.set("useUnifiedTopology", true);
-mongoose.connect("mongodb://localhost:27017/stockmarket", {
+mongoose.connect(uri, {
   useNewUrlParser: true,
 });
 mongoose.set("useCreateIndex", true);
@@ -109,18 +113,36 @@ passport.deserializeUser(function (id, done) {
 
 //initialize DB
 app.get("/init", function (req, res) {
-  Stock.find({}, function (err, foundStocks) {
-    if (foundStocks.length === 0) {
-      initializeDB(function (stocks) {
-        Stock.insertMany(stocks, function (err) {
-          if (err) {
-            console.log(err);
-          } else {
-            console.log("Successfully Initialized Database.");
-          }
-        });
+  Stock.remove({}, () => {
+    initializeDB(function (stocks) {
+      Stock.insertMany(stocks, function (err) {
+        if (err) {
+          console.log(err);
+        } else {
+          console.log("Successfully Initialized Database.");
+        }
       });
-    }
+    });
+  });
+});
+
+app.get("/updateSpark", function (req, res) {
+  Stock.find({}, function (err, foundStocks) {
+    updateSpark(function (sparks) {
+      for (let i = 0; i < foundStocks.length; i++) {
+        foundStocks[i].sparkData = sparks[foundStocks[i].symbol].close;
+      }
+      async.forEachOf(
+        foundStocks,
+        function (value, key, callback) {
+          console.log(key);
+          foundStocks[key].save();
+        },
+        () => {
+          console.log("updated spark");
+        }
+      );
+    });
   });
 });
 
@@ -149,17 +171,21 @@ var sparkUpdate = new CronJob(
   "40 9 * * 1-5",
   function () {
     Stock.find({}, function (err, foundStocks) {
-    
       updateSpark(function (sparks) {
         for (let i = 0; i < foundStocks.length; i++) {
           foundStocks[i].sparkData = sparks[foundStocks[i].symbol].close;
         }
-        async.forEachOf(foundStocks,function(value,key,callback){
-          console.log(key)
-          foundStocks[key].save()
-        },()=>{console.log("updated spark")})
+        async.forEachOf(
+          foundStocks,
+          function (value, key, callback) {
+            console.log(key);
+            foundStocks[key].save();
+          },
+          () => {
+            console.log("updated spark");
+          }
+        );
       });
-  
     });
   },
   null,
@@ -167,8 +193,6 @@ var sparkUpdate = new CronJob(
   "America/New_York"
 );
 sparkUpdate.start();
-
-
 
 app.get("/", function (req, res) {
   if (req.isAuthenticated()) {
@@ -571,9 +595,6 @@ app.post("/trade", function (req, res) {
   }
 });
 
-app.listen(3000, function () {
-  console.log("server has started");
-});
 
 function updateUserInvest(foundUser, amount, foundStock, callback) {
   for (let i = 0; i < foundUser.investments.length; i++) {
@@ -587,3 +608,8 @@ function updateUserInvest(foundUser, amount, foundStock, callback) {
     callback();
   });
 }
+
+const port = process.env.port || 3000;
+app.listen(port, function () {
+  console.log("server has started");
+});
