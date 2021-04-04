@@ -4,8 +4,28 @@ const getSimpleStat = require(__dirname + "/simpleStat.js");
 
 module.exports = function(callback){
     stocks = [];
-    var stock_list = ["AAPL","TSLA","AMZN","MSFT","NIO","NVDA","MRNA","NKLA","AMD","NFLX","FB","GOOG"];
-    //var stock_list = ["AAPL","TSLA"];
+    var stock_list =  [
+        "AAPL",
+        "TSLA",
+        "AMZN",
+        "MSFT",
+        "NIO",
+        "NVDA",
+        "MRNA",
+        "NKLA",
+        "AMD",
+        "NFLX",
+        "FB",
+        "GOOG",
+        "AMAT",
+        "BIDU",
+        "CSCO",
+        "ADBE",
+        "INTC",
+        "QCOM",
+        "SBUX",
+        "VOD"
+      ];
     function helper(pos){
         let end = (pos+5<=stock_list.length) ? pos+5: stock_list.length;
         for(let i=pos;i<end;i++){

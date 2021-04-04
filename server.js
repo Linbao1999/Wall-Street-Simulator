@@ -15,6 +15,8 @@ const updateSpark = require(__dirname + "/updateSpark.js");
 const stockSchema = require(__dirname + "/stockSchema.js");
 
 const app = express();
+
+//default list 
 let symbolList = [
   "AAPL",
   "TSLA",
@@ -29,6 +31,32 @@ let symbolList = [
   "FB",
   "GOOG",
 ];
+
+//stocks that get updated in the database
+// let wholeList = [
+//   "AAPL",
+//   "TSLA",
+//   "AMZN",
+//   "MSFT",
+//   "NIO",
+//   "NVDA",
+//   "MRNA",
+//   "NKLA",
+//   "AMD",
+//   "NFLX",
+//   "FB",
+//   "GOOG",
+//   "AMAT",
+//   "BIDU",
+//   "CSCO",
+//   "ADBE",
+//   "INTC",
+//   "QCOM",
+//   "SBUX",
+//   "VOD"
+// ]
+
+
 app.use(express.static("public"));
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
