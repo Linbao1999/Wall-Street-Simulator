@@ -136,7 +136,7 @@ app.get("/init", function (req, res) {
         if (err) {
           console.log(err);
         } else {
-          console.log("Successfully Initialized Database.");
+          res.redirect("/")
         }
       });
     });
@@ -156,7 +156,7 @@ app.get("/updateSpark", function (req, res) {
           foundStocks[key].save();
         },
         () => {
-          console.log("updated spark");
+          res.redirect("/");
         }
       );
     });

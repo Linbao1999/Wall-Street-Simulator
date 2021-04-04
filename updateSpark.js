@@ -7,7 +7,28 @@ module.exports = function (callback) {
   );
 
   let symbols = "";
-  let stocks = ["AAPL","TSLA","AMZN","MSFT","NIO","NVDA","MRNA","NKLA","AMD","NFLX","FB","GOOG"];
+  let stocks = [
+    "AAPL",
+    "TSLA",
+    "AMZN",
+    "MSFT",
+    "NIO",
+    "NVDA",
+    "MRNA",
+    "NKLA",
+    "AMD",
+    "NFLX",
+    "FB",
+    "GOOG",
+    "AMAT",
+    "BIDU",
+    "CSCO",
+    "ADBE",
+    "INTC",
+    "QCOM",
+    "SBUX",
+    "VOD"
+  ];;
 
   for(let i=0;i<stocks.length;i++){
       symbols += stocks[i];
