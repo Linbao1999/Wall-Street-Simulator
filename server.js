@@ -313,7 +313,7 @@ app.get("/stock-market", function (req, res) {
         getInvestInfo(foundUser.investments, function (investmentInfo) {
           res.render("index", {
             username: username,
-            investments: foundUser.investments,
+            watchListStocks: foundStocks,
             investmentInfo: investmentInfo,
             userInfo: { username: username, balance: foundUser.balance },
             errMessage: "None",
