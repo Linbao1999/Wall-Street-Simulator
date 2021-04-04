@@ -47,11 +47,10 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 const MongoClient = require("mongodb").MongoClient;
-const uri =
-  "mongodb+srv://ruilinzhousyd:haohaoxuex1@cluster0.wnrww.mongodb.net/stockmarket?retryWrites=true&w=majority";
+const mongodbURL = process.env.mongodbURL || "mongodb://localhost:27017/stockmarket";
 
 mongoose.set("useUnifiedTopology", true);
-mongoose.connect(uri, {
+mongoose.connect(mongodbURL, {
   useNewUrlParser: true,
 });
 mongoose.set("useCreateIndex", true);
@@ -609,7 +608,7 @@ function updateUserInvest(foundUser, amount, foundStock, callback) {
   });
 }
 
-const port = process.env.port || 3000;
+const port = process.env.port ||3000;
 app.listen(port, function () {
   console.log("server has started");
 });
