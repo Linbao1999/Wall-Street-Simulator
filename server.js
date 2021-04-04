@@ -47,7 +47,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 const MongoClient = require("mongodb").MongoClient;
-const mongodbURL = process.env.mongodbURL || "mongodb://localhost:27017/stockmarket";
+const mongodbURL = process.env.mongodbURL;
 
 mongoose.set("useUnifiedTopology", true);
 mongoose.connect(mongodbURL, {
