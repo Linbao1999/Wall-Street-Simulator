@@ -453,7 +453,7 @@ app.post("/trade", function (req, res) {
               if (result.amount <= 0) {
                 res.render("index", {
                   watchListStocks: [],
-                  userInfo: { username: username },
+                  userInfo: { username: username,balance:foundUser.balance},
                   errMessage: "Invalid Amount. Please Try Again.",
                 });
               } else if (exist === true) {
@@ -466,7 +466,7 @@ app.post("/trade", function (req, res) {
                     ) {
                       res.render("index", {
                         watchListStocks: [],
-                        userInfo: { username: username },
+                        userInfo: { username: username,balance:foundUser.balance},
                         errMessage:
                           "You are trying to sell shares more than you owned.",
                       });
@@ -485,7 +485,7 @@ app.post("/trade", function (req, res) {
                           if (foundUser.balance < 0) {
                             res.render("index", {
                               watchListStocks: [],
-                              userInfo: { username: username },
+                              userInfo: { username: username,balance:foundUser.balance},
                               errMessage: "Your balance is not enough.",
                             });
                           } else if (foundInvestment.amount === 0) {
@@ -499,7 +499,7 @@ app.post("/trade", function (req, res) {
                                 () => {
                                   res.render("index", {
                                     watchListStocks: [],
-                                    userInfo: { username: username },
+                                    userInfo: { username: username,balance:foundUser.balance },
                                     errMessage: errMessage,
                                   });
                                 }
@@ -522,7 +522,7 @@ app.post("/trade", function (req, res) {
                               foundUser.save(() => {
                                 res.render("index", {
                                   watchListStocks: [],
-                                  userInfo: { username: username },
+                                  userInfo: { username: username ,balance:foundUser.balance},
                                   errMessage: errMessage,
                                 });
                               });
