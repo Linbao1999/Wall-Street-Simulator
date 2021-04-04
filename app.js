@@ -8,6 +8,8 @@ const { find, forEach } = require("async");
 const session = require("express-session");
 const passport = require("passport");
 const passportLocalMongoose = require("passport-local-mongoose");
+var CronJob = require("cron").CronJob;
+var async = require("async");
 
 const initializeDB = require(__dirname + "/initDB.js");
 const updateSpark = require(__dirname + "/updateSpark.js");
@@ -96,17 +98,95 @@ passport.deserializeUser(function (id, done) {
   });
 });
 
+// update database
+// cron.schedule("*/30 10-15 * * 1-5",()=>{
+//   //update Stock in data base
+// })
+
+// cron.schedule("40 9 * * 1-5",()=>{
+//   //update Spark in database
+// })
+
+//initialize DB
+app.get("/init", function (req, res) {
+  Stock.find({}, function (err, foundStocks) {
+    if (foundStocks.length === 0) {
+      initializeDB(function (stocks) {
+        Stock.insertMany(stocks, function (err) {
+          if (err) {
+            console.log(err);
+          } else {
+            console.log("Successfully Initialized Database.");
+          }
+        });
+      });
+    }
+  });
+});
+
+var stockUpdate = new CronJob(
+  "*/30 10-15 * * 1-5",
+  function () {
+    Stock.remove({}, () => {
+      initializeDB(function (stocks) {
+        Stock.insertMany(stocks, function (err) {
+          if (err) {
+            console.log(err);
+          } else {
+            console.log("Successfully updated Database.");
+          }
+        });
+      });
+    });
+  },
+  null,
+  true,
+  "America/New_York"
+);
+stockUpdate.start();
+
+var sparkUpdate = new CronJob(
+  "40 9 * * 1-5",
+  function () {
+    Stock.find({}, function (err, foundStocks) {
+    
+      updateSpark(function (sparks) {
+        for (let i = 0; i < foundStocks.length; i++) {
+          foundStocks[i].sparkData = sparks[foundStocks[i].symbol].close;
+        }
+        async.forEachOf(foundStocks,function(value,key,callback){
+          console.log(key)
+          foundStocks[key].save()
+        },()=>{console.log("updated spark")})
+      });
+  
+    });
+  },
+  null,
+  true,
+  "America/New_York"
+);
+sparkUpdate.start();
+
+
+
 app.get("/", function (req, res) {
   if (req.isAuthenticated()) {
-    let userInfo = { username: req.user.username };
     User.findOne({ username: req.user.username }, function (err, foundUser) {
       Stock.find(
         { symbol: { $in: foundUser.watchlist } },
         function (err, foundStocks) {
-          res.render("index", {
-            watchListStocks: foundStocks,
-            userInfo: userInfo,
-            errMessage: "None",
+          getInvestInfo(foundUser.investments, function (investmentInfo) {
+            res.render("index", {
+              username: req.user.username,
+              investmentInfo: investmentInfo,
+              watchListStocks: foundStocks,
+              userInfo: {
+                username: req.user.username,
+                balance: foundUser.balance,
+              },
+              errMessage: "None",
+            });
           });
         }
       );
@@ -141,7 +221,9 @@ app.post("/register", function (req, res) {
     req.body.password,
     function (err) {
       if (err) {
-        res.render("err-register",{errMessage:"Username is already been used."})
+        res.render("err-register", {
+          errMessage: "Username is already been used.",
+        });
       } else {
         passport.authenticate("local")(req, res, function (err) {
           res.redirect("/");
@@ -159,8 +241,10 @@ app.post("/login", function (req, res) {
 
   req.login(user, function (err) {
     if (err) {
-      res.render("err-login",{errMessage:"Username and password combination is incorrect."});
-    } else  {
+      res.render("err-login", {
+        errMessage: "Username and password combination is incorrect.",
+      });
+    } else {
       passport.authenticate("local")(req, res, function () {
         res.redirect("/");
       });
@@ -168,40 +252,42 @@ app.post("/login", function (req, res) {
   });
 });
 
-
-function getProfit(investments, callback) {
-  let profit = [];
-  let profitRate = [];
-  let currentPrice = [];
-  let investmentInfo = {
-    profit: profit,
-    profitRate: profitRate,
-    currentPrice: currentPrice,
-  };
-  getProfitHelper(investments, 0, investmentInfo, callback);
-}
-
-function getProfitHelper(investments, index, investmentInfo, callback) {
-  if (investmentInfo.profit.length === investments.length) {
-    callback(investmentInfo);
-    return;
+function getInvestInfo(investments, callback) {
+  let symbols = [];
+  let dict = {};
+  for (let i = 0; i < investments.length; i++) {
+    symbols.push(investments[i].symbol);
+    dict[symbols[i]] = i;
   }
-  let item = investments[index];
-  Stock.findOne({ symbol: item.symbol }, function (err, foundStock) {
-    if (err) {
-      console.log(err);
-    } else {
-      //item: investments[index]
-      investmentInfo.profit.push(
-        foundStock.currentPrice * item.amount - item.cost
-      );
-      investmentInfo.profitRate.push(
-        ((foundStock.currentPrice * item.amount - item.cost) / item.cost) * 100
-      );
-      investmentInfo.currentPrice.push(foundStock.currentPrice);
-      getProfitHelper(investments, index + 1, investmentInfo, callback);
-      return;
+  let profit = new Array(symbols.length);
+  let profitRate = new Array(symbols.length);
+  let currentPrice = new Array(symbols.length);
+  let totalCost = 0;
+  let totalProfit = 0;
+  Stock.find({ symbol: { $in: symbols } }, function (err, foundStocks) {
+    for (let i = 0; i < foundStocks.length; i++) {
+      let stock = foundStocks[i];
+      let item = investments[dict[stock.symbol]];
+      profit[dict[stock.symbol]] = stock.currentPrice * item.amount - item.cost;
+
+      profitRate[dict[stock.symbol]] =
+        ((stock.currentPrice * item.amount - item.cost) / item.cost) * 100;
+
+      currentPrice[dict[stock.symbol]] = stock.currentPrice;
+
+      totalCost += item.cost;
+
+      totalProfit += profit[dict[stock.symbol]];
     }
+    let investmentInfo = {
+      profit: profit,
+      profitRate: profitRate,
+      currentPrice: currentPrice,
+      totalCost: totalCost,
+      totalProfit: totalProfit,
+    };
+
+    callback(investmentInfo);
   });
 }
 
@@ -230,22 +316,22 @@ app.get("/myinvestment", function (req, res) {
   if (req.isAuthenticated()) {
     let username = req.user.username;
     User.findOne({ username: username }, function (err, foundUser) {
-      getProfit(foundUser.investments, function (investmentInfo) {
+      getInvestInfo(foundUser.investments, function (investmentInfo) {
         res.render("myinvestment", {
           username: username,
           investments: foundUser.investments,
-          profit: investmentInfo.profit,
-          profitRate: investmentInfo.profitRate,
-          currentPrice: investmentInfo.currentPrice,
-          userInfo: { username: username },
+          investmentInfo: investmentInfo,
+          userInfo: { username: username, balance: foundUser.balance },
           errMessage: "None",
         });
       });
     });
   } else {
-    res.render("err-login",{errMessage:"Please Login First."});
+    res.render("err-login", { errMessage: "Please Login First." });
   }
 });
+
+// app.get("/history")
 
 app.post("/edit", function (req, res) {
   if (req.isAuthenticated()) {
@@ -299,7 +385,7 @@ app.post("/edit", function (req, res) {
       }
     });
   } else {
-    res.render("err-login",{errMessage:"Please Login First."});
+    res.render("err-login", { errMessage: "Please Login First." });
   }
 });
 
@@ -329,7 +415,6 @@ app.post("/trade", function (req, res) {
           Investment.exists(
             { username: username, symbol: targetSymbol },
             function (err, exist) {
-
               let changeAmountBy = 0;
               if (result.type === "buy") {
                 changeAmountBy = result.amount;
@@ -351,12 +436,11 @@ app.post("/trade", function (req, res) {
               }
 
               // if the investment exist
-              if(result.amount<=0){
+              if (result.amount <= 0) {
                 res.render("index", {
                   watchListStocks: [],
                   userInfo: { username: username },
-                  errMessage:
-                    "Invalid Amount. Please Try Again.",
+                  errMessage: "Invalid Amount. Please Try Again.",
                 });
               } else if (exist === true) {
                 Investment.findOne(
@@ -377,9 +461,11 @@ app.post("/trade", function (req, res) {
                       Stock.findOne(
                         { symbol: targetSymbol },
                         function (err, foundStock) {
-                          foundInvestment.cost += foundStock.currentPrice * changeAmountBy;
+                          foundInvestment.cost +=
+                            foundStock.currentPrice * changeAmountBy;
                           foundInvestment.amount += changeAmountBy;
-                          foundUser.balance -= foundStock.currentPrice * changeAmountBy;
+                          foundUser.balance -=
+                            foundStock.currentPrice * changeAmountBy;
                           //not enough balance
                           if (foundUser.balance < 0) {
                             res.render("index", {
@@ -405,38 +491,43 @@ app.post("/trade", function (req, res) {
                               );
                             });
                           } else {
-                            for (let i = 0;i < foundUser.investments.length;i++) {
-                              if (foundUser.investments[i].symbol === targetSymbol) {
+                            for (
+                              let i = 0;
+                              i < foundUser.investments.length;
+                              i++
+                            ) {
+                              if (
+                                foundUser.investments[i].symbol === targetSymbol
+                              ) {
                                 foundUser.investments[i] = foundInvestment;
                                 break;
                               }
                             }
-                            foundInvestment.save(()=>{
-                              foundUser.save(()=>{
+                            foundInvestment.save(() => {
+                              foundUser.save(() => {
                                 res.render("index", {
                                   watchListStocks: [],
                                   userInfo: { username: username },
                                   errMessage: errMessage,
                                 });
-                              })
-                            })
-
+                              });
+                            });
                           }
                         }
                       );
                     }
-                      
-                  });
+                  }
+                );
                 // if the investment doesn't exist
               } else {
-                if(changeAmountBy<0){
+                if (changeAmountBy < 0) {
                   res.render("index", {
                     watchListStocks: [],
                     userInfo: { username: username },
                     errMessage:
                       "You are trying to sell shares more than you owned.",
                   });
-                } else{
+                } else {
                   Investment.create(
                     {
                       username: result.username,
@@ -476,7 +567,7 @@ app.post("/trade", function (req, res) {
       });
     });
   } else {
-    res.render("err-login",{errMessage:"Please Login First."});
+    res.render("err-login", { errMessage: "Please Login First." });
   }
 });
 

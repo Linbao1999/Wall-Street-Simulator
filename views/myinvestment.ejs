@@ -1,7 +1,7 @@
 <%- include("header") -%>
 
   <!-- Page Content -->
-  <div class="container-fluid" style="background-color: #eeeeee;padding-bottom: 15px;">
+  <div class="container-fluid"padding-bottom: 15px;">
     <div class="row" id="column-name" style="background-color: #424242; margin-bottom: 15px;">
       <div class="col"><p class="font-weight-bold fs-5" style="color: white;">Stock Symbol</p></div>
       <div class="col"><p class="font-weight-bold fs-5" style="color: white;">Quantity</p></div>
@@ -26,22 +26,22 @@
 
       <div class="col">
         <div class="row">
-            <p><%=currentPrice[i]%></p>
+            <p><%=investmentInfo.currentPrice[i]%></p>
         </div>
       </div>
 
 
       <div class="col">
         <div class="row">
-            <%if(profit[i]<0) { %>
+            <%if(investmentInfo.profit[i]<0) { %>
                 <p class="fw-normal  fs-4" style="color: rgb(245, 66, 66)">
-                <%=profit[i].toFixed(2)%>
-                <span class="fw-light fs-6">| <%=profitRate[i].toFixed(2)%>%</span>
+                <%=investmentInfo.profit[i].toFixed(2)%>
+                <span class="fw-light fs-6">| <%=investmentInfo.profitRate[i].toFixed(2)%>%</span>
                 </p>
                 <%} else {%>
                 <p class="fw-normal fs-4 price" style="color: rgb(0, 153, 51)">
-                <%=profit[i].toFixed(2)%> 
-                <span class="fw-light fs-6">| <%=profitRate[i].toFixed(2)%>%</span>
+                <%=investmentInfo.profit[i].toFixed(2)%> 
+                <span class="fw-light fs-6">| <%=investmentInfo.profitRate[i].toFixed(2)%>%</span>
                 </p>
                 <%}%>
         </div>
@@ -49,7 +49,7 @@
 
       <div class="col">
           <div class="row">
-            <p><%=(item.cost + profit[i]).toFixed(2)%></p>
+            <p><%=(item.cost + investmentInfo.profit[i]).toFixed(2)%></p>
           </div>
        </div>
 
@@ -57,9 +57,67 @@
     
     <%if(i!=investments.length-1){%>
       <hr class="twenty-pdding">
-    <%}%>  
-<%}%>
+    <%} else {%>  
+      <hr style="margin-bottom: 90px;">
+      <%}%>
+  <%}%>
   </div>
   
-<%- include("footer") -%>
+  <div class="container-fluid fixed-bottom bg-dark text-white">
+    <div class="row" style="padding-top: 16px;">
+      <div class="col">
+        <div class="row">
+          <p>$<%=userInfo.balance.toFixed(2)%></p>
+        </div>
+
+        <div class="row">
+          <p>AVAILABLE</p>
+        </div>
+      </div>
+      <div class="col">
+        <p class="fw-bold fs-3">+</p>
+      </div>
+
+      <div class="col">
+        <div class="row">
+          <p>$<%=investmentInfo.totalCost.toFixed(2)%></p>
+        </div>
+
+        <div class="row">
+          <p>ALLOCATED</p>
+        </div>
+        
+      </div>
+      
+      <div class="col">
+        <p class="fw-bold fs-3">+</p>
+      </div>
+
+      <div class="col">
+
+        <div class="row">
+          <p>$<%=investmentInfo.totalProfit.toFixed(2)%></p>
+        </div>
+
+        <div class="row">
+          <p>PROFIT</p>
+        </div>
+      </div>
+      <div class="col">
+        <p class="fw-bold fs-3">=</p>
+      </div>
+      <div class="col">
+        <div class="row">
+          <p>$<%=(investmentInfo.totalCost+investmentInfo.totalProfit+userInfo.balance).toFixed(2)%></p>
+        </div>
+
+        <div class="row">
+          <p>EQUITY</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
 </body>

@@ -19,7 +19,7 @@ module.exports = function (callback) {
   req.query({
     symbols: symbols,
     interval: "1d",
-    range: "3mo",
+    range: "6mo",
   });
 
   req.headers({

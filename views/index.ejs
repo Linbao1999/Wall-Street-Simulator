@@ -76,7 +76,7 @@
 
 
      <div class="modal fade" id="trade<%=item.symbol%>" tabindex="-1" aria-labelledby="Trade" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Trade</h5>
@@ -101,6 +101,10 @@
     </div>
     <%if(i!=watchListStocks.length-1){%>
         <hr class="twenty-pdding">
+      <%}else{%>
+        <%if(userInfo!=undefined){%>
+        <hr style="margin-bottom: 90px;">
+        <%}%>
       <%}%>
     <%} %>
 
@@ -109,6 +113,73 @@
   <script type="text/javascript" src="/javascripts/spark.js"></script>
 
 
+
+
+  <%if(userInfo===undefined){%>
+    <footer class="py-5 bg-dark">
+      <div class="container">
+        <p class="m-0 text-center text-white">
+          Tips: Click the price button to trade!
+        </p>
+      </div>
+      <!-- /.container -->
+    </footer>
+  <%} else {%>
+    <div class="container-fluid fixed-bottom bg-dark text-white">
+      <div class="row" style="padding-top: 16px;">
+        <div class="col">
+          <div class="row">
+            <p>$<%=userInfo.balance.toFixed(2)%></p>
+          </div>
+  
+          <div class="row">
+            <p>AVAILABLE</p>
+          </div>
+        </div>
+        <div class="col">
+          <p class="fw-bold fs-3">+</p>
+        </div>
+  
+        <div class="col">
+          <div class="row">
+            <p>$<%=investmentInfo.totalCost.toFixed(2)%></p>
+          </div>
+  
+          <div class="row">
+            <p>ALLOCATED</p>
+          </div>
+          
+        </div>
+        
+        <div class="col">
+          <p class="fw-bold fs-3">+</p>
+        </div>
+  
+        <div class="col">
+  
+          <div class="row">
+            <p>$<%=investmentInfo.totalProfit.toFixed(2)%></p>
+          </div>
+  
+          <div class="row">
+            <p>PROFIT</p>
+          </div>
+        </div>
+        <div class="col">
+          <p class="fw-bold fs-3">=</p>
+        </div>
+        <div class="col">
+          <div class="row">
+            <p>$<%=(investmentInfo.totalCost+investmentInfo.totalProfit+userInfo.balance).toFixed(2)%></p>
+          </div>
+  
+          <div class="row">
+            <p>EQUITY</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  <%}%>
   <%- include("footer") -%>
 
 

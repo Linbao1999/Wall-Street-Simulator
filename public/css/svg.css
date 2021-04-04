@@ -1,11 +1,11 @@
 .sparkline--red{
-    padding-left: 10%;
+    padding-left: 5%;
     stroke:rgb(228, 54, 54);
     fill: rgba(228, 54, 54, 0.3)
 }
 
 .sparkline--green{
-    padding-left: 10%;
+    padding-left: 5%;
     left:50%;
     stroke:rgb(47, 214, 41);
     fill: rgba(47, 214, 41, 0.3)
