@@ -34,11 +34,10 @@ module.exports = function(callback){
                 stocks.push(result);
                 if(stocks.length===stock_list.length){
                     callback(stocks);
-                    console.log("for loop finished");
-                    return;
+                    console.log("5 stocks updated");
                 }
                 if(i==end-1){
-                    setTimeout(helper, 1*1000,pos+5);
+                    setTimeout(helper, 1*1500,pos+5);
                 }
             });
         }
