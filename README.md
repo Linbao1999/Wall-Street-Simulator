@@ -10,3 +10,10 @@ Due to API limit, only 20 selected stocks are stored in the database and the rel
 
 
 ![alt text](https://github.com/Linbao1999/Wall-Street-Simulator/blob/master/screeshot.png?raw=true)
+
+
+## Contact
+If the website goes down, please contact me by email. 
+
+
+My Email address: ruilinzhousyd@gmail.com
