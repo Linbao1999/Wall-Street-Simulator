@@ -16,7 +16,7 @@ const stockSchema = require(__dirname + "/stockSchema.js");
 
 const app = express();
 
-//default list 
+//default list
 let symbolList = [
   "AAPL",
   "TSLA",
@@ -55,7 +55,6 @@ let symbolList = [
 //   "SBUX",
 //   "VOD"
 // ]
-
 
 app.use(express.static("public"));
 app.set("view engine", "ejs");
@@ -141,38 +140,35 @@ app.get("/init", function (req, res) {
   //     });
   //   });
   // });
-  Stock.find({},function(err,foundStocks){
+  Stock.find({}, function (err, foundStocks) {
     let reloadSparks = {};
-    for(let i=0;i<foundStocks.length;i++){
-      reloadSparks[foundStocks[i].symbol]=foundStocks[i].sparkData;
+    for (let i = 0; i < foundStocks.length; i++) {
+      reloadSparks[foundStocks[i].symbol] = foundStocks[i].sparkData;
     }
 
     Stock.remove({}, () => {
       initializeDB(function (stocks) {
         Stock.insertMany(stocks, function (err) {
-
           Stock.find({}, function (err, updatedStocks) {
-            updateSpark(function (sparks) {
-              for (let i = 0; i < updatedStocks.length; i++) {
-                updatedStocks[i].sparkData = sparks[updatedStocks[i].symbol].close;
+            for (let i = 0; i < updatedStocks.length; i++) {
+              updatedStocks[i].sparkData =
+              reloadSparks[updatedStocks[i].symbol];
+            }
+            async.forEachOf(
+              updatedStocks,
+              function (value, key, callback) {
+                console.log(key);
+                updatedStocks[key].save();
+              },
+              () => {
+                res.redirect("/");
               }
-              async.forEachOf(
-                updatedStocks,
-                function (value, key, callback) {
-                  console.log(key);
-                  updatedStocks[key].save();
-                },
-                () => {
-                  res.redirect("/");
-                }
-              );
-            });
+            );
           });
-
         });
       });
     });
-  })
+  });
 });
 
 app.get("/updateSpark", function (req, res) {
@@ -198,10 +194,10 @@ app.get("/updateSpark", function (req, res) {
 var stockUpdate = new CronJob(
   "*/30 10-15 * * 1-5",
   function () {
-    Stock.find({},function(err,foundStocks){
+    Stock.find({}, function (err, foundStocks) {
       let reloadSparks = {};
-      for(let i=0;i<foundStocks.length;i++){
-        reloadSparks[foundStock[i].symbol]=foundStocks[i].sparkData;
+      for (let i = 0; i < foundStocks.length; i++) {
+        reloadSparks[foundStock[i].symbol] = foundStocks[i].sparkData;
       }
 
       Stock.remove({}, () => {
@@ -226,11 +222,10 @@ var stockUpdate = new CronJob(
                 console.log("updated spark");
               }
             );
-
           });
         });
       });
-    })
+    });
   },
   null,
   true,
@@ -576,10 +571,12 @@ app.post("/trade", function (req, res) {
                           foundUser.balance -=
                             foundStock.currentPrice * changeAmountBy;
                           //not enough balance
-                          console.log("balance before check: "+foundUser.balance);
+                          console.log(
+                            "balance before check: " + foundUser.balance
+                          );
                           console.log("balance<0? ");
                           if (foundUser.balance < 0) {
-                            console.log("true")
+                            console.log("true");
                             res.render("index", {
                               watchListStocks: [],
                               userInfo: {
