@@ -130,17 +130,50 @@ passport.deserializeUser(function (id, done) {
 
 //initialize DB
 app.get("/init", function (req, res) {
-  Stock.remove({}, () => {
-    initializeDB(function (stocks) {
-      Stock.insertMany(stocks, function (err) {
-        if (err) {
-          console.log(err);
-        } else {
-          res.redirect("/")
-        }
+  // Stock.remove({}, () => {
+  //   initializeDB(function (stocks) {
+  //     Stock.insertMany(stocks, function (err) {
+  //       if (err) {
+  //         console.log(err);
+  //       } else {
+  //         res.redirect("/")
+  //       }
+  //     });
+  //   });
+  // });
+  Stock.find({},function(err,foundStocks){
+    let reloadSparks = {};
+    for(let i=0;i<foundStocks.length;i++){
+      reloadSparks[foundStock[i].symbol]=foundStocks[i].sparkData;
+    }
+
+    Stock.remove({}, () => {
+      initializeDB(function (stocks) {
+        Stock.insertMany(stocks, function (err) {
+          if (err) {
+            console.log(err);
+          } else {
+            console.log("Successfully updated Database.");
+          }
+          //reload stored spark data
+          for (let i = 0; i < foundStocks.length; i++) {
+            foundStocks[i].sparkData = reloadSparks[foundStocks[i].symbol];
+          }
+          async.forEachOf(
+            foundStocks,
+            function (value, key, callback) {
+              console.log(key);
+              foundStocks[key].save();
+            },
+            () => {
+              console.log("updated spark");
+            }
+          );
+
+        });
       });
     });
-  });
+  })
 });
 
 app.get("/updateSpark", function (req, res) {
@@ -166,17 +199,39 @@ app.get("/updateSpark", function (req, res) {
 var stockUpdate = new CronJob(
   "*/30 10-15 * * 1-5",
   function () {
-    Stock.remove({}, () => {
-      initializeDB(function (stocks) {
-        Stock.insertMany(stocks, function (err) {
-          if (err) {
-            console.log(err);
-          } else {
-            console.log("Successfully updated Database.");
-          }
+    Stock.find({},function(err,foundStocks){
+      let reloadSparks = {};
+      for(let i=0;i<foundStocks.length;i++){
+        reloadSparks[foundStock[i].symbol]=foundStocks[i].sparkData;
+      }
+
+      Stock.remove({}, () => {
+        initializeDB(function (stocks) {
+          Stock.insertMany(stocks, function (err) {
+            if (err) {
+              console.log(err);
+            } else {
+              console.log("Successfully updated Database.");
+            }
+            //reload stored spark data
+            for (let i = 0; i < foundStocks.length; i++) {
+              foundStocks[i].sparkData = reloadSparks[foundStocks[i].symbol];
+            }
+            async.forEachOf(
+              foundStocks,
+              function (value, key, callback) {
+                console.log(key);
+                foundStocks[key].save();
+              },
+              () => {
+                console.log("updated spark");
+              }
+            );
+
+          });
         });
       });
-    });
+    })
   },
   null,
   true,
