@@ -161,8 +161,8 @@ app.get("/init", function (req, res) {
             async.forEachOf(
               updatedStocks,
               function (value, key, callback) {
-                console.log(key);
                 updatedStocks[key].save();
+                callback();
               },
               () => {
                 res.redirect("/");
