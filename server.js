@@ -156,14 +156,14 @@ app.get("/init", function (req, res) {
             console.log("Successfully updated Database.");
           }
           //reload stored spark data
-          for (let i = 0; i < foundStocks.length; i++) {
-            foundStocks[i].sparkData = reloadSparks[foundStocks[i].symbol];
+          for (let i = 0; i < stocks.length; i++) {
+            stocks[i].sparkData = reloadSparks[stocks[i].symbol];
           }
           async.forEachOf(
-            foundStocks,
+            stocks,
             function (value, key, callback) {
               console.log(key);
-              foundStocks[key].save();
+              stocks[key].save();
             },
             () => {
               console.log("updated spark");
