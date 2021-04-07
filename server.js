@@ -147,28 +147,27 @@ app.get("/init", function (req, res) {
       reloadSparks[foundStocks[i].symbol]=foundStocks[i].sparkData;
     }
 
-    await Stock.remove({}, () => {
+    Stock.remove({}, () => {
       initializeDB(function (stocks) {
         Stock.insertMany(stocks, function (err) {
-          if (err) {
-            console.log(err);
-          } else {
-            console.log("Successfully updated Database.");
-          }
-          //reload stored spark data
-          for (let i = 0; i < stocks.length; i++) {
-            stocks[i].sparkData = reloadSparks[stocks[i].symbol];
-          }
-          async.forEachOf(
-            stocks,
-            function (value, key, callback) {
-              console.log(key);
-              stocks[key].save();
-            },
-            () => {
-              console.log("updated spark");
-            }
-          );
+
+          Stock.find({}, function (err, updatedStocks) {
+            updateSpark(function (sparks) {
+              for (let i = 0; i < updatedStocks.length; i++) {
+                updatedStocks[i].sparkData = sparks[updatedStocks[i].symbol].close;
+              }
+              async.forEachOf(
+                updatedStocks,
+                function (value, key, callback) {
+                  console.log(key);
+                  updatedStocks[key].save();
+                },
+                () => {
+                  res.redirect("/");
+                }
+              );
+            });
+          });
 
         });
       });
