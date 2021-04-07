@@ -147,7 +147,7 @@ app.get("/init", function (req, res) {
       reloadSparks[foundStocks[i].symbol]=foundStocks[i].sparkData;
     }
 
-    Stock.remove({}, () => {
+    await Stock.remove({}, () => {
       initializeDB(function (stocks) {
         Stock.insertMany(stocks, function (err) {
           if (err) {
