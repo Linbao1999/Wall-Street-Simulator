@@ -144,7 +144,7 @@ app.get("/init", function (req, res) {
   Stock.find({},function(err,foundStocks){
     let reloadSparks = {};
     for(let i=0;i<foundStocks.length;i++){
-      reloadSparks[foundStock[i].symbol]=foundStocks[i].sparkData;
+      reloadSparks[foundStocks[i].symbol]=foundStocks[i].sparkData;
     }
 
     Stock.remove({}, () => {
