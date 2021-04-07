@@ -145,10 +145,14 @@ app.get("/init", function (req, res) {
     for (let i = 0; i < foundStocks.length; i++) {
       reloadSparks[foundStocks[i].symbol] = foundStocks[i].sparkData;
     }
-
+    if(reloadSparks.length!=0){
+      console.log("sparks data stored to reloadSparks")
+    }
     Stock.remove({}, () => {
+      console.log("Stocks removed")
       initializeDB(function (stocks) {
         Stock.insertMany(stocks, function (err) {
+          console.log("New Stocks inserted")
           Stock.find({}, function (err, updatedStocks) {
             for (let i = 0; i < updatedStocks.length; i++) {
               updatedStocks[i].sparkData =
@@ -159,7 +163,9 @@ app.get("/init", function (req, res) {
               function (value, key, callback) {
                 console.log(key);
                 updatedStocks[key].save();
-                callback();
+              },
+              () => {
+                res.redirect("/");
               }
             );
           });
@@ -209,8 +215,11 @@ var stockUpdate = new CronJob(
               async.forEachOf(
                 updatedStocks,
                 function (value, key, callback) {
+                  console.log(key);
                   updatedStocks[key].save();
-                  callback();
+                },
+                () => {
+                  console.log("stock all updated");;
                 }
               );
             });
