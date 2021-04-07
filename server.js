@@ -197,31 +197,28 @@ var stockUpdate = new CronJob(
     Stock.find({}, function (err, foundStocks) {
       let reloadSparks = {};
       for (let i = 0; i < foundStocks.length; i++) {
-        reloadSparks[foundStock[i].symbol] = foundStocks[i].sparkData;
+        reloadSparks[foundStocks[i].symbol] = foundStocks[i].sparkData;
       }
-
+  
       Stock.remove({}, () => {
         initializeDB(function (stocks) {
           Stock.insertMany(stocks, function (err) {
-            if (err) {
-              console.log(err);
-            } else {
-              console.log("Successfully updated Database.");
-            }
-            //reload stored spark data
-            for (let i = 0; i < foundStocks.length; i++) {
-              foundStocks[i].sparkData = reloadSparks[foundStocks[i].symbol];
-            }
-            async.forEachOf(
-              foundStocks,
-              function (value, key, callback) {
-                console.log(key);
-                foundStocks[key].save();
-              },
-              () => {
-                console.log("updated spark");
+            Stock.find({}, function (err, updatedStocks) {
+              for (let i = 0; i < updatedStocks.length; i++) {
+                updatedStocks[i].sparkData =
+                reloadSparks[updatedStocks[i].symbol];
               }
-            );
+              async.forEachOf(
+                updatedStocks,
+                function (value, key, callback) {
+                  console.log(key);
+                  updatedStocks[key].save();
+                },
+                () => {
+                  res.redirect("/");
+                }
+              );
+            });
           });
         });
       });
