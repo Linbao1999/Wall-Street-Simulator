@@ -159,9 +159,7 @@ app.get("/init", function (req, res) {
               function (value, key, callback) {
                 console.log(key);
                 updatedStocks[key].save();
-              },
-              () => {
-                res.redirect("/");
+                callback();
               }
             );
           });
@@ -211,11 +209,8 @@ var stockUpdate = new CronJob(
               async.forEachOf(
                 updatedStocks,
                 function (value, key, callback) {
-                  console.log(key);
                   updatedStocks[key].save();
-                },
-                () => {
-                  res.redirect("/");
+                  callback();
                 }
               );
             });

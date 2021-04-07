@@ -33,8 +33,8 @@ module.exports = function(callback){
             getSimpleStat(stock_list[i],function(result){
                 stocks.push(result);
                 if(stocks.length===stock_list.length){
+                    console.log("All stock data fetched");
                     callback(stocks);
-                    console.log("5 stocks updated");
                 }
                 if(i==end-1){
                     setTimeout(helper, 1*1500,pos+5);
