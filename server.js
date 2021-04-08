@@ -224,7 +224,7 @@ var stockUpdate = new CronJob(
                   callback();
                 },
                 () => {
-                  res.redirect("/");
+                  console.log("updated stock");
                 }
               );
             });
@@ -252,6 +252,7 @@ var sparkUpdate = new CronJob(
           function (value, key, callback) {
             console.log(key);
             foundStocks[key].save();
+            callback();
           },
           () => {
             console.log("updated spark");
